@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<samlp:LogoutRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" 
+		xmlns="urn:oasis:names:tc:SAML:2.0:assertion" 
+		ID="ID_bae70b7d-4616-4e43-975e-84dbef9d9374" Version="2.0" 
+		IssueInstant="2015-06-17T08:09:40.204Z" 
+		Destination="https://192.168.30.196:8443/auth/realms/demo/protocol/saml">
+	<saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">https://192.168.30.196:8443/root/</saml:Issuer>
+	<saml:NameID xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" Format="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent">test</saml:NameID>
+	<samlp:SessionIndex>ID_06b802ed-7d03-4fbd-a30b-ef6ec4f44613</samlp:SessionIndex>
+</samlp:LogoutRequest>
