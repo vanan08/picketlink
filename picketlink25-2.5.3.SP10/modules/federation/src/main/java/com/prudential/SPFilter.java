@@ -113,6 +113,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.picketlink.common.util.StringUtil.isNotNull;
 
@@ -129,6 +131,9 @@ public class SPFilter implements Filter {
     private static Logger log = Logger.getLogger(SPFilter.class);
 
     private final boolean trace = log.isTraceEnabled();
+    
+    final static String IMAGE_PATTERN = "([^\\s]+(\\.(?i)(jpg|png|gif|bmp|js|css))$)";
+	final static Pattern pattern = Pattern.compile(IMAGE_PATTERN);
 
     protected SPType spConfiguration = null;
 
@@ -183,9 +188,9 @@ public class SPFilter implements Filter {
 
         HttpSession session = request.getSession();
         
-        //Principal userPrincipal = null;
-        //if(session.getAttribute(GeneralConstants.PRINCIPAL_ID)!=null)
-        //	userPrincipal = (Principal) session.getAttribute(GeneralConstants.PRINCIPAL_ID);
+        Principal userPrincipal = null;
+        if(session.getAttribute(GeneralConstants.PRINCIPAL_ID)!=null)
+        	userPrincipal = (Principal) session.getAttribute(GeneralConstants.PRINCIPAL_ID);
         //log.info("userPrincipal="+userPrincipal);
 
         System.out.println("running sp filter....");
@@ -234,7 +239,7 @@ public class SPFilter implements Filter {
     	}*/
         
         
-        if (checkUrlsExcluded(excludedURLs, request.getRequestURI()) || session_value != null || (source==null && sso_status.equals(SSO_N))) {
+        if (checkUrlsExcluded(excludedURLs, request.getRequestURI()) || session_value != null || (source==null && sso_status.equals(SSO_N)) || validateExtension(request.getRequestURI())) {
         	filterChain.doFilter(servletRequest, servletResponse);
     		return;
         }
@@ -256,8 +261,8 @@ public class SPFilter implements Filter {
 	            		filterChain.doFilter(servletRequest, servletResponse);
 	            	}
 	            	*/
-            	//filterChain.doFilter(servletRequest, servletResponse);
-            	//return;
+            //	filterChain.doFilter(servletRequest, servletResponse);
+            //	return;
             	
             	/*} else {
             		SAML2HandlerResponse saml2HandlerResponse = new DefaultSAML2HandlerResponse();
@@ -698,7 +703,6 @@ public class SPFilter implements Filter {
         String samlMessage = PostBindingUtil.base64Encode(baos.toString());
         String destination = authnRequest.getDestination().toASCIIString();
         
-        System.out.println("destination="+destination);
         PostBindingUtil.sendPost(new DestinationInfoHolder(destination, samlMessage, relayState), response, true);
     }
 
@@ -872,6 +876,11 @@ public class SPFilter implements Filter {
         return isExcludedURL;
     }
 
+    private boolean validateExtension(String url) {
+    	Matcher matcher = pattern.matcher(url);
+  	  	return matcher.matches();
+    }
+    
     private String getUrlApplication(String url, int length) {
     	return url.substring(0, url.length() - length);
     }
