@@ -188,12 +188,12 @@ public class SPFilter implements Filter {
 
         HttpSession session = request.getSession();
         
-        Principal userPrincipal = null;
-        if(session.getAttribute(GeneralConstants.PRINCIPAL_ID)!=null)
-        	userPrincipal = (Principal) session.getAttribute(GeneralConstants.PRINCIPAL_ID);
+        //Principal userPrincipal = null;
+        //if(session.getAttribute(GeneralConstants.PRINCIPAL_ID)!=null)
+        //	userPrincipal = (Principal) session.getAttribute(GeneralConstants.PRINCIPAL_ID);
         //log.info("userPrincipal="+userPrincipal);
 
-        System.out.println("running sp filter....");
+        log.info("running sp filter....");
         
         
         String samlRequest = request.getParameter(GeneralConstants.SAML_REQUEST_KEY);
@@ -891,4 +891,5 @@ public class SPFilter implements Filter {
 	    	this.startTime = 0;
     	}
     }
+    
 }
