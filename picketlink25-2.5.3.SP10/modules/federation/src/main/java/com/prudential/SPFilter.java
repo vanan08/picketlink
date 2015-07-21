@@ -877,8 +877,11 @@ public class SPFilter implements Filter {
     }
 
     private boolean validateExtension(String url) {
-    	Matcher matcher = pattern.matcher(url);
-  	  	return matcher.matches();
+    	if (url.endsWith(".jpg") || url.endsWith(".png") || url.endsWith(".gif")
+    			|| url.endsWith(".bmp") || url.endsWith(".js") || url.endsWith(".css")) {
+    		return true;
+    	}
+  	  	return false;
     }
     
     private String getUrlApplication(String url, int length) {
