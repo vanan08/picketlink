@@ -578,10 +578,10 @@ public class SAML2AuthenticationHandler extends BaseSAML2Handler {
                 //logger.info("validRole="+validRole);
                 List<String> blacklist = (List<String>) session.getAttribute("blacklist");
                 StringBuffer sb = request.getRequestURL();
-                if (request.getQueryString() != null) {
+                /*if (request.getQueryString() != null) {
                 	sb.append('?').append(request.getQueryString());
-                }
-                if (blacklist!=null && blacklist.contains(sb.toString().trim())) {
+                }*/
+                if (validateUrlInBlacklist(blacklist, sb.toString().trim())) {
                 //if (!validRole) {
                     //logger.trace("Invalid role: " + roles);
                     principal = null;
@@ -703,4 +703,19 @@ public class SAML2AuthenticationHandler extends BaseSAML2Handler {
         }
     }
 
+    private boolean validateUrlInBlacklist(List<String> blacklist, String url) {
+    	if (blacklist == null || blacklist.size() == 0) {
+    		return false;
+    	}
+    	
+    	for (String s : blacklist) {
+    		logger.info(s + " - " + url);
+    		if (url.endsWith(s)) {
+    			return true;
+    		}
+    	}
+    	
+    	return false;
+    }
+    
 }
