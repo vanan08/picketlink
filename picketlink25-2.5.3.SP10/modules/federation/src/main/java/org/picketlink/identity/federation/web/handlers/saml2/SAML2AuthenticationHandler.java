@@ -637,10 +637,16 @@ public class SAML2AuthenticationHandler extends BaseSAML2Handler {
                 	}
                 	continue;
                 }
-                /*else if (attr.getName().equals("adminUrl")) {
-                	spConfiguration.setLogoutUrl((String) attr.getAttributeValue().get(0));
+                else if (attr.getName().equals("adminUrl")) {
+                	HttpSession session = httpContext.getRequest().getSession(false);
+                	if (session != null) {
+                		String value = (String) attr.getAttributeValue().get(0);
+                		if (value != null) {
+                			session.setAttribute("adminUrl", value);
+                		}
+                	}
                 	continue;
-                }*/
+                }
                 if (roleKeys.size() > 0) {
                     if (!roleKeys.contains(attr.getName()))
                         continue;

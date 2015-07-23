@@ -113,7 +113,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.picketlink.common.util.StringUtil.isNotNull;
@@ -133,6 +132,7 @@ public class SPFilter implements Filter {
     private final boolean trace = log.isTraceEnabled();
     
     final static String IMAGE_PATTERN = "([^\\s]+(\\.(?i)(jpg|png|gif|bmp|js|css))$)";
+    
 	final static Pattern pattern = Pattern.compile(IMAGE_PATTERN);
 
     protected SPType spConfiguration = null;
@@ -171,8 +171,8 @@ public class SPFilter implements Filter {
     private String session_id_param;
     private String sid_param;
     
-    private boolean start = true;
-    private long startTime = 0;
+    //private boolean start = true;
+    //private long startTime = 0;
 
     protected String canonicalizationMethod = CanonicalizationMethod.EXCLUSIVE_WITH_COMMENTS;
 
@@ -188,12 +188,12 @@ public class SPFilter implements Filter {
 
         HttpSession session = request.getSession();
         
+        log.info("running sp filter....");
+        
         //Principal userPrincipal = null;
         //if(session.getAttribute(GeneralConstants.PRINCIPAL_ID)!=null)
         //	userPrincipal = (Principal) session.getAttribute(GeneralConstants.PRINCIPAL_ID);
-        //log.info("userPrincipal="+userPrincipal);
-
-        log.info("running sp filter....");
+        //log.info("userPrincipal="+userPrincipal+", "+spConfiguration.getServiceURL());
         
         
         String samlRequest = request.getParameter(GeneralConstants.SAML_REQUEST_KEY);
@@ -206,11 +206,11 @@ public class SPFilter implements Filter {
         String source = request.getParameter(SOURCE);
         
         //String fullPath = request.getRequestURL().toString();
-        //log.info("orgination path=" + fullPath);
+        //log.info("request_url=" + fullPath);
     	//String url_param = request.getParameter("url");
     	
     	//log.info("limitSeconds="+limitSeconds);
-    	
+        
     	// local logout
     	String lloStr = request.getParameter(GeneralConstants.LANDING_PAGE);
         boolean llogoutRequest = isNotNull(lloStr) && "true".equalsIgnoreCase(lloStr);
@@ -239,7 +239,8 @@ public class SPFilter implements Filter {
     	}*/
         
         
-        if (checkUrlsExcluded(excludedURLs, request.getRequestURI()) || session_value != null || (source==null && sso_status.equals(SSO_N)) || validateExtension(request.getRequestURI())) {
+        if (checkUrlsExcluded(excludedURLs, request.getRequestURI()) || session_value != null || (source==null && sso_status.equals(SSO_N)) 
+        		|| validateExtension(request.getRequestURI()) || validateAdminUrl(session, request.getRequestURL().toString())) {
         	filterChain.doFilter(servletRequest, servletResponse);
     		return;
         }
@@ -261,8 +262,8 @@ public class SPFilter implements Filter {
 	            		filterChain.doFilter(servletRequest, servletResponse);
 	            	}
 	            	*/
-            //	filterChain.doFilter(servletRequest, servletResponse);
-            //	return;
+            	//filterChain.doFilter(servletRequest, servletResponse);
+            	//return;
             	
             	/*} else {
             		SAML2HandlerResponse saml2HandlerResponse = new DefaultSAML2HandlerResponse();
@@ -294,7 +295,7 @@ public class SPFilter implements Filter {
 		             throw new ServletException(e);
 		        }
             //}
-                        
+                
             return;
             
         } else {
@@ -476,7 +477,7 @@ public class SPFilter implements Filter {
                             holder.getIssuer(), documentHolder, HANDLER_TYPE.SP);
                     if (keyManager != null)
                         saml2HandlerRequest.addOption(GeneralConstants.DECRYPTING_KEY, keyManager.getSigningKey());
-
+                    
                     SAML2HandlerResponse saml2HandlerResponse = new DefaultSAML2HandlerResponse();
                     
                     // Deal with handler chains
@@ -884,7 +885,16 @@ public class SPFilter implements Filter {
   	  	return false;
     }
     
-    private String getUrlApplication(String url, int length) {
+    private boolean validateAdminUrl(HttpSession session, String url) {
+    	String adminUrl = (String) session.getAttribute("adminUrl");
+    	if (adminUrl != null && adminUrl.endsWith(url)) {
+    		return true;
+        }
+    	
+    	return false;
+    }
+    
+    /*private String getUrlApplication(String url, int length) {
     	return url.substring(0, url.length() - length);
     }
 
@@ -893,6 +903,6 @@ public class SPFilter implements Filter {
 	    	this.start = true;
 	    	this.startTime = 0;
     	}
-    }
+    }*/
     
 }
