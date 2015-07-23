@@ -715,7 +715,6 @@ public class SAML2AuthenticationHandler extends BaseSAML2Handler {
     	}
     	
     	for (String s : blacklist) {
-    		logger.info(s + " - " + url);
     		if (url.endsWith(s)) {
     			return true;
     		}
