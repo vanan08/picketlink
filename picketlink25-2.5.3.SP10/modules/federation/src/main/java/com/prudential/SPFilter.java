@@ -200,8 +200,8 @@ public class SPFilter implements Filter {
         String samlResponse = request.getParameter(GeneralConstants.SAML_RESPONSE_KEY);
         
         String session_value = request.getParameter(sid_param);
-        /*String sso_status = (request.getParameter(SSO_FLAG_CONST) == null) 
-        						? sso_flag : request.getParameter(SSO_FLAG_CONST);*/
+        String sso_status = (request.getParameter(SSO_FLAG_CONST) == null) 
+        						? sso_flag : request.getParameter(SSO_FLAG_CONST);
 
         String source = request.getParameter(SOURCE);
         
@@ -239,7 +239,7 @@ public class SPFilter implements Filter {
     	}*/
         
         
-        if (checkUrlsExcluded(excludedURLs, request.getRequestURI()) || session_value != null || (source==null && sso_flag.equals(SSO_N)) 
+        if (checkUrlsExcluded(excludedURLs, request.getRequestURI()) || session_value != null || (source==null && sso_status.equals(SSO_N)) 
         		|| validateExtension(request.getRequestURI()) || validateAdminUrl(session, request.getRequestURL().toString())) {
         	filterChain.doFilter(servletRequest, servletResponse);
     		return;
