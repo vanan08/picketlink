@@ -82,7 +82,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
+//import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.xml.namespace.QName;
 
@@ -572,17 +572,17 @@ public class SAML2AuthenticationHandler extends BaseSAML2Handler {
                 if (roleValidator == null)
                     throw logger.nullValueError("Role Validator");
                 
-                HttpServletRequest request = httpContext.getRequest();
-                HttpSession session = request.getSession(false);
-                //boolean validRole = roleValidator.userInRole(principal, roles);
+                //HttpServletRequest request = httpContext.getRequest();
+                //HttpSession session = request.getSession(false);
+                boolean validRole = roleValidator.userInRole(principal, roles);
                 //logger.info("validRole="+validRole);
-                List<String> blacklist = (List<String>) session.getAttribute("blacklist");
-                StringBuffer sb = request.getRequestURL();
+                //List<String> blacklist = (List<String>) session.getAttribute("blacklist");
+                //StringBuffer sb = request.getRequestURL();
                 /*if (request.getQueryString() != null) {
                 	sb.append('?').append(request.getQueryString());
                 }*/
-                if (validateUrlInBlacklist(blacklist, sb.toString().trim())) {
-                //if (!validRole) {
+                //if (validateUrlInBlacklist(blacklist, sb.toString().trim())) {
+                if (!validRole) {
                     //logger.trace("Invalid role: " + roles);
                     principal = null;
                 }
