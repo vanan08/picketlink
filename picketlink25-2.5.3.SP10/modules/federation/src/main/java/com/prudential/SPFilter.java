@@ -170,6 +170,9 @@ public class SPFilter implements Filter {
     
     private String session_id_param;
     private String sid_param;
+    private String pse_landing;
+    
+    private final static String PSE = "PSE";
     
     //private boolean start = true;
     //private long startTime = 0;
@@ -203,7 +206,16 @@ public class SPFilter implements Filter {
         String sso_status = (request.getParameter(SSO_FLAG_CONST) == null) 
         						? sso_flag : request.getParameter(SSO_FLAG_CONST);
 
-        String source = request.getParameter(SOURCE);
+        String source = null; 
+        if(session.getAttribute(SOURCE)==null) {
+        	if(request.getParameter(SOURCE)!=null || pse_landing.equals("Y"))
+        	   session.setAttribute(SOURCE, PSE);
+        }
+        
+        if(session.getAttribute(SOURCE)!=null)
+            source = (String) session.getAttribute(SOURCE);
+         
+         System.out.println("source="+source);
         
         //String fullPath = request.getRequestURL().toString();
         //log.info("request_url=" + fullPath);
@@ -237,7 +249,6 @@ public class SPFilter implements Filter {
         	}
     		return;
     	}*/
-        
         
         if (checkUrlsExcluded(excludedURLs, request.getRequestURI()) || session_value != null || (source==null && sso_status.equals(SSO_N)) 
         		|| validateExtension(request.getRequestURI()) || validateAdminUrl(session, request.getRequestURL().toString())) {
@@ -646,11 +657,15 @@ public class SPFilter implements Filter {
         while (params.hasMoreElements()) {
         	String pname = params.nextElement();
         	log.info(pname);
-        	if (pname.equals(GeneralConstants.ROLES) || pname.equals(GeneralConstants.LOGOUT_PAGE) 
+        	if (pname.equals(GeneralConstants.LOGOUT_PAGE) 
         			|| pname.equals(GeneralConstants.IGNORE_SIGNATURES) || (pname.equals("SAML_HANDLER_CHAIN_CLASS"))) {
         		continue;
         		
-        	} 
+        	}
+        	
+        	if (pname.equals(GeneralConstants.ROLES) & filterConfig.getInitParameter(pname).equals(PSE)) {
+                this.pse_landing="Y";
+        	}
         	
         	if (pname.equals(SSO_FLAG_CONST)) {
         		this.sso_flag = (filterConfig.getInitParameter(pname) == null) 
@@ -658,6 +673,7 @@ public class SPFilter implements Filter {
         		continue;
         		
         	}
+
         	
         	if (pname.equals("excludedURLs")) {
         		String[] excluded = filterConfig.getInitParameter("excludedURLs").split(";");
