@@ -170,7 +170,7 @@ public class SPFilter implements Filter {
     
     private String session_id_param;
     private String sid_param;
-    private String pse_landing;
+    private String pse_landing = "N";
     
     private final static String PSE = "PSE";
     
