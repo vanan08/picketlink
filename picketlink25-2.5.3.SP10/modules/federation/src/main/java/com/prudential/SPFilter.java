@@ -216,6 +216,11 @@ public class SPFilter implements Filter {
             source = (String) session.getAttribute(SOURCE);
          
          System.out.println("source="+source);
+         
+         if (source==null && sso_status.equals(SSO_N)){
+         	filterChain.doFilter(servletRequest, servletResponse);
+     		return;
+         }
         
         //String fullPath = request.getRequestURL().toString();
         //log.info("request_url=" + fullPath);
