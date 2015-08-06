@@ -162,6 +162,7 @@ public class SPFilter implements Filter {
     private String logOutPage = GeneralConstants.LOGOUT_PAGE_NAME;
     
     private final String SSO_FLAG_CONST = "SSOFlag";
+    private final String API_URL = "/api/";
     
     private final static String SSO_Y = "Y";
     private final static String SSO_N = "N";
@@ -170,7 +171,7 @@ public class SPFilter implements Filter {
     
     private String session_id_param;
     private String sid_param;
-    private String pse_landing = "N";
+    private String pse_landing="N";
     
     private final static String PSE = "PSE";
     
@@ -186,41 +187,64 @@ public class SPFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-
         boolean postMethod = "POST".equalsIgnoreCase(request.getMethod());
-
-        HttpSession session = request.getSession();
-        
-        log.info("running sp filter....");
-        
-        //Principal userPrincipal = null;
-        //if(session.getAttribute(GeneralConstants.PRINCIPAL_ID)!=null)
-        //	userPrincipal = (Principal) session.getAttribute(GeneralConstants.PRINCIPAL_ID);
-        //log.info("userPrincipal="+userPrincipal+", "+spConfiguration.getServiceURL());
-        
-        
+        String source = request.getParameter(SOURCE);
         String samlRequest = request.getParameter(GeneralConstants.SAML_REQUEST_KEY);
-        String samlResponse = request.getParameter(GeneralConstants.SAML_RESPONSE_KEY);
-        
+        String samlResponse = request.getParameter(GeneralConstants.SAML_RESPONSE_KEY); 
         String session_value = request.getParameter(sid_param);
         String sso_status = (request.getParameter(SSO_FLAG_CONST) == null) 
         						? sso_flag : request.getParameter(SSO_FLAG_CONST);
-
-        String source = null; 
-        if(session.getAttribute(SOURCE)==null) {
-        	if(request.getParameter(SOURCE)!=null || pse_landing.equals("Y"))
-        	   session.setAttribute(SOURCE, PSE);
+        
+        if (checkUrlsExcluded(excludedURLs, request.getRequestURI()) || session_value != null) {
+        	filterChain.doFilter(servletRequest, servletResponse);
+    		return;
         }
         
-        if(session.getAttribute(SOURCE)!=null)
-            source = (String) session.getAttribute(SOURCE);
+
+        if(source == null && sso_status.equals(SSO_N)) {
+           HttpSession session = request.getSession(false);
+           if(session!=null) {
+	           System.out.println("[spfilter] skipping sso with sessionid="+session.getId()+", request resource="+request.getRequestURI());
+	           
+	           if(session.getAttribute("randomKey")!=null) {
+	              String randomKey = (String) session.getAttribute("randomKey");
+	              System.out.println("[spfilter] skipping sso with randomKey="+randomKey);
+	           }
+	           else {
+	        	   System.out.println("[spfilter] skipping sso with no randomKey"); 
+	           }
+           }	
+           else {
+        	      System.out.println("[spfilter] skipping sso with session id is null, request resource="+request.getRequestURI());
+           }
+           
+       	   filterChain.doFilter(servletRequest, servletResponse);
+		   return;
+        }
+        
+        System.out.println("[spfilter] start running sp filter....="+request.getRequestURI());
+
+        HttpSession session = request.getSession();
+
+        Principal userPrincipal = null;
+        if(session.getAttribute(GeneralConstants.PRINCIPAL_ID)!=null) {
+          userPrincipal = (Principal) session.getAttribute(GeneralConstants.PRINCIPAL_ID);
+          System.out.println("[spfilter] user principal object is not null and value="+userPrincipal.getName());
+        }
+        else {
+        	System.out.println("[spfilter] user principal object is null");
+        }
+        //log.info("userPrincipal="+userPrincipal+", "+spConfiguration.getServiceURL());
+
+        if(session.getAttribute(SOURCE)==null) {
+        	if(source!=null || pse_landing.equals("Y"))
+        	   session.setAttribute(SOURCE, PSE);
+        }
+        else {
+           source = (String) session.getAttribute(SOURCE);
+        } 
          
-         System.out.println("source="+source);
-         
-         if (source==null && sso_status.equals(SSO_N)){
-         	filterChain.doFilter(servletRequest, servletResponse);
-     		return;
-         }
+        System.out.println("[spfilter] source="+source);
         
         //String fullPath = request.getRequestURL().toString();
         //log.info("request_url=" + fullPath);
@@ -255,8 +279,12 @@ public class SPFilter implements Filter {
     		return;
     	}*/
         
-        if (checkUrlsExcluded(excludedURLs, request.getRequestURI()) || session_value != null || (source==null && sso_status.equals(SSO_N)) 
-        		|| validateExtension(request.getRequestURI()) || validateAdminUrl(session, request.getRequestURL().toString())) {
+        if(userPrincipal!=null && request.getRequestURI().contains(API_URL)) {
+        	filterChain.doFilter(servletRequest, servletResponse);
+    		return;
+        }
+     
+        if (validateExtension(request.getRequestURI()) || validateAdminUrl(session, request.getRequestURL().toString())) {
         	filterChain.doFilter(servletRequest, servletResponse);
     		return;
         }
@@ -305,6 +333,9 @@ public class SPFilter implements Filter {
 		                }
 		        		AuthnRequestType authnRequest = createSAMLRequest(sb.toString(), this.serviceURL, this.identityURL);
 		        		sendRequestToIDP(authnRequest, relayState, response);
+		        		
+
+		                System.out.println("[spfilter] sendRequestToIDP with service url="+sb.toString());
 		        	//}
 		             
 		        } catch (Exception e) {
